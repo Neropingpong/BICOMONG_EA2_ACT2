@@ -1,0 +1,26 @@
+function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    
+    // Explicitly target the sheet named "Sheet1"
+    const sheet = SpreadsheetApp
+      .getActiveSpreadsheet()
+      .getSheetByName("Sheet1");
+    
+    // Appends the form data as a new row
+    sheet.appendRow([
+      data.timestamp,
+      data.name,
+      data.consumption,
+      data.type,
+      data.discount,
+      data.totalBill
+    ]);
+    
+    return ContentService.createTextOutput(JSON.stringify({"result": "success"}))
+                         .setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({"result": "error", "error": error.toString()}))
+                         .setMimeType(ContentService.MimeType.JSON);
+  }
+}
