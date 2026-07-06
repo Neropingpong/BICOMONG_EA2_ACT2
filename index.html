@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Billing System</title>
+    <style>
+        :root {
+            --primary: #0284c7;
+            --primary-hover: #0369a1;
+            --background: #f0f9ff;
+            --surface: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            padding: 2rem 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                grid-template-columns: 1fr 1fr;
+            }
+            .header-wrapper {
+                grid-column: span 2;
+            }
+        }
+
+        .header-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            border-left: 6px solid var(--primary);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .counter-card {
+            background: var(--background);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            color: var(--primary-hover);
+            border: 1px solid #bae6fd;
+        }
+
+        .card {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            border-bottom: 2px solid var(--background);
+            padding-bottom: 0.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        input, select {
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            margin-top: 0.5rem;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .statement-output {
+            background: #fafafa;
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .bill-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.95rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        .bill-row.total {
+            border-bottom: none;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            padding-top: 0.5rem;
+        }
+
+        .status-msg {
+            font-size: 0.85rem;
+            text-align: center;
+            color: var(--text-light);
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-wrapper">
+        <h1>Water Billing Statement</h1>
+        <div class="counter-card">
+            Transactions: <span id="transactionCount">0</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Customer Details</div>
+        <form id="billingForm">
+            <div class="form-group">
+                <label for="customerName">Customer Name</label>
+                <input type="text" id="customerName" placeholder="Enter full name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="waterConsumption">Water Consumption (m³)</label>
+                <input type="number" id="waterConsumption" min="0" step="0.01" placeholder="e.g. 25" required>
+            </div>
+
+            <div class="form-group">
+                <label for="customerType">Customer Type</label>
+                <select id="customerType" required>
+                    <option value="" disabled selected>Select type</option>
+                    <option value="Regular">Regular</option>
+                    <option value="Senior Citizen">Senior Citizen</option>
+                    <option value="Solo Parent">Solo Parent</option>
+                </select>
+            </div>
+
+            <button type="submit" id="generateBtn">Generate Bill</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Billing Statement Output</div>
+        <div class="statement-output" id="statementOutput">
+            <p style="text-align: center; color: var(--text-light); margin: auto;">
+                Fill out the form and click generate to view the statement.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+   // --- Configuration ---
+// Replace with your deployed Google Apps Script Web App URL
+// Configuration
+const scriptURL = "https://script.google.com/macros/s/AKfycbw-P97hrb4m49w7JRWOaJlWxK-i4Dp5f6kM_bMr0vI2Al-k1E4dinkxDHxENH8IggQBkQ/exec";
+
+let transactionCount = 0;
+
+// DOM Elements
+const billingForm = document.getElementById('billingForm');
+const statementOutput = document.getElementById('statementOutput');
+const transactionCountEl = document.getElementById('transactionCount');
+
+billingForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    // 1. DOM Access Methods
+    const name = document.getElementById('customerName').value;
+    const consumption = parseFloat(document.getElementById('waterConsumption').value);
+    const type = document.getElementById('customerType').value;
+
+    // 2. Conditional Structure: Determine Rate per m³
+    let rate = 0;
+    if (consumption <= 20) {
+        rate = 25.00;
+    } else if (consumption <= 40) {
+        rate = 35.00;
+    } else if (consumption <= 60) {
+        rate = 45.00;
+    } else {
+        rate = 60.00;
+    }
+
+    const basicAmount = consumption * rate;
+
+    // 3. Conditional Structure: Determine Discount Rate
+    let discountRate = 0;
+    if (type === 'Senior Citizen') {
+        discountRate = 0.25;
+    } else if (type === 'Solo Parent') {
+        discountRate = 0.15;
+    } else {
+        discountRate = 0.00;
+    }
+
+    const discountAmount = basicAmount * discountRate;
+    const totalAmount = basicAmount - discountAmount;
+
+    // 4. Loop / Increment Counter
+    transactionCount++;
+    transactionCountEl.textContent = transactionCount;
+
+    // 5. Build Dynamic Output
+    statementOutput.innerHTML = `
+        <div class="bill-row"><span>Customer Name:</span> <strong>${name}</strong></div>
+        <div class="bill-row"><span>Customer Type:</span> <strong>${type}</strong></div>
+        <div class="bill-row"><span>Consumption:</span> <strong>${consumption.toFixed(2)} m³</strong></div>
+        <div class="bill-row"><span>Rate per m³:</span> <strong>₱${rate.toFixed(2)}</strong></div>
+        <div class="bill-row"><span>Gross Amount:</span> <strong>₱${basicAmount.toFixed(2)}</strong></div>
+        <div class="bill-row"><span>Discount (${(discountRate * 100)}%):</span> <strong style="color: #dc2626;">-₱${discountAmount.toFixed(2)}</strong></div>
+        <div class="bill-row total"><span>Total Amount:</span> <span>₱${totalAmount.toFixed(2)}</span></div>
+        <div class="status-msg" id="syncStatus">Syncing data to cloud store...</div>
+    `;
+
+    // 6. Data Package Creation
+    const formData = {
+        timestamp: new Date().toLocaleString(),
+        name: name,
+        consumption: consumption,
+        type: type,
+        discount: discountAmount.toFixed(2),
+        totalBill: totalAmount.toFixed(2)
+    };
+
+    // Send payload data to Apps Script Web App
+    fetch(scriptURL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(() => {
+        document.getElementById('syncStatus').textContent = '✅ Record successfully saved to Google Sheets!';
+        document.getElementById('syncStatus').style.color = '#16a34a';
+    })
+    .catch(error => {
+        console.error('Error syncing data:', error);
+        document.getElementById('syncStatus').textContent = '❌ Sync failed.';
+        document.getElementById('syncStatus').style.color = '#dc2626';
+    });
+
+    billingForm.reset();
+});
+</script>
+</script>
+</body>
+</html>
